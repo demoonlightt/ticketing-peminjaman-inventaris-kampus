@@ -13,22 +13,41 @@
       <p class="text-muted">Login ke SIPINJAM (Sistem Informasi Peminjaman Inventaris Kampus)</p>
     </div>
 
-    <form action="{{ route('student.dashboard') }}" method="GET">
+    @if(session('success'))
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    @endif
+
+    @if($errors->any())
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <ul class="mb-0">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    @endif
+
+    <form action="{{ route('login') }}" method="POST">
+      @csrf
       <div class="mb-3">
         <label for="email" class="form-label">Email Kampus</label>
-        <input type="email" class="form-control" id="email" placeholder="mahasiswa@kampus.ac.id" required>
+        <input type="email" name="email" class="form-control" id="email" value="{{ old('email') }}" placeholder="mahasiswa@kampus.ac.id" required>
       </div>
       
       <div class="mb-3">
         <div class="d-flex justify-content-between align-items-center">
           <label for="password" class="form-label">Password</label>
-          <a href="#" class="text-decoration-none small">Lupa password?</a>
+          <a href="{{ route('password.request') }}" class="text-decoration-none small">Lupa password?</a>
         </div>
-        <input type="password" class="form-control" id="password" placeholder="••••••••" required>
+        <input type="password" name="password" class="form-control" id="password" placeholder="••••••••" required>
       </div>
 
       <div class="mb-4 form-check">
-        <input type="checkbox" class="form-check-input" id="remember">
+        <input type="checkbox" name="remember" class="form-check-input" id="remember">
         <label class="form-check-label" for="remember">Ingat saya</label>
       </div>
 
@@ -44,7 +63,7 @@
     </div>
 
     <div class="d-grid gap-2 mb-4">
-      <a href="{{ route('student.dashboard') }}" class="btn btn-outline-dark py-2 d-flex align-items-center justify-content-center">
+      <a href="{{ route('auth.google') }}" class="btn btn-outline-dark py-2 d-flex align-items-center justify-content-center">
         <i class="bi bi-google text-danger me-2"></i> Login dengan Google
       </a>
     </div>

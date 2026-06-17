@@ -19,67 +19,76 @@
     <div class="panel shadow-sm text-center p-4">
       <div class="position-relative d-inline-block mb-3">
         <img src="{{ asset('assets/images/avatar/avatar.jpg') }}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 120px; height: 120px; object-fit: cover;">
-        <button class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" style="width: 32px; height: 32px; padding: 0;"><i class="bi bi-pencil"></i></button>
       </div>
-      <h5 class="mb-1">Petugas Inventaris</h5>
-      <p class="text-muted mb-3">petugas@kampus.ac.id</p>
-      <span class="badge bg-primary px-3 py-2">Hak Akses: Operator</span>
+      <h5 class="mb-1">{{ $user->name }}</h5>
+      <p class="text-muted mb-3">{{ $user->email }}</p>
+      <span class="badge bg-primary px-3 py-2">Hak Akses: {{ $user->officerProfile->division ?? 'Operator' }}</span>
     </div>
   </div>
 
   <div class="col-xl-8 col-lg-7">
+    @if(session('success'))
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    @endif
+
+    @if($errors->any())
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <ul class="mb-0">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    @endif
+
     <div class="panel shadow-sm">
       <div class="panel-header border-bottom">
-        <h5 class="panel-title mb-0">Data Petugas</h5>
+        <h5 class="panel-title mb-0">Data Diri & Keamanan Akun</h5>
       </div>
       <div class="panel-body">
-        <form>
+        <form action="{{ route('officer.profile.update') }}" method="POST">
+          @csrf
           <div class="row mb-3">
             <div class="col-md-6">
-              <label class="form-label">Nama Lengkap</label>
-              <input type="text" class="form-control" value="Petugas Inventaris" required>
+              <label for="name" class="form-label">Nama Lengkap</label>
+              <input type="text" name="name" id="name" class="form-control" value="{{ old('name', $user->name) }}" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label">ID Pegawai</label>
-              <input type="text" class="form-control" value="PEG-998877" disabled>
+              <label for="employee_number" class="form-label font-semibold">NIP / ID Pegawai</label>
+              <input type="text" name="employee_number" id="employee_number" class="form-control" value="{{ old('employee_number', $user->officerProfile->employee_number) }}" required>
             </div>
           </div>
-          <div class="row mb-4">
+          <div class="row mb-3">
             <div class="col-md-6">
-              <label class="form-label">Email Operasional</label>
-              <input type="email" class="form-control" value="petugas@kampus.ac.id" required>
+              <label for="email" class="form-label">Email Operasional</label>
+              <input type="email" name="email" id="email" class="form-control" value="{{ old('email', $user->email) }}" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Nomor HP</label>
-              <input type="text" class="form-control" value="085566778899" required>
+              <label for="division" class="form-label">Divisi / Bagian</label>
+              <input type="text" name="division" id="division" class="form-control" value="{{ old('division', $user->officerProfile->division) }}" required>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary">Simpan Profil</button>
-        </form>
-      </div>
-    </div>
 
-    <div class="panel shadow-sm mt-4 border-top border-warning border-4">
-      <div class="panel-header border-bottom">
-        <h5 class="panel-title mb-0">Keamanan Akun</h5>
-      </div>
-      <div class="panel-body">
-        <form>
-          <div class="mb-3">
-            <label class="form-label">Password Lama</label>
-            <input type="password" class="form-control" required>
-          </div>
+          <hr class="my-4">
+
+          <h6 class="mb-3 text-primary"><i class="bi bi-shield-lock me-2"></i>Ganti Password (Kosongkan jika tidak ingin diubah)</h6>
+          
           <div class="row mb-4">
             <div class="col-md-6">
-              <label class="form-label">Password Baru</label>
-              <input type="password" class="form-control" required>
+              <label for="password" class="form-label">Password Baru</label>
+              <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 8 karakter">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Konfirmasi Password Baru</label>
-              <input type="password" class="form-control" required>
+              <label for="password_confirmation" class="form-label">Konfirmasi Password Baru</label>
+              <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Ulangi password baru">
             </div>
           </div>
-          <button type="submit" class="btn btn-warning">Perbarui Password</button>
+
+          <button type="submit" class="btn btn-primary px-4">Simpan Perubahan</button>
         </form>
       </div>
     </div>

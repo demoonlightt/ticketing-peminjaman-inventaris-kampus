@@ -12,11 +12,37 @@
       <p class="text-muted mb-0">Basis data master seluruh aset barang kampus.</p>
     </div>
   </div>
-  <div class="mt-3 mt-md-0 d-flex gap-2">
-    <input type="text" class="form-control" placeholder="Cari..." style="max-width: 200px;">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInventoryModal"><i class="bi bi-plus-lg"></i> Tambah Barang</button>
-  </div>
+  <form action="{{ route('admin.inventory') }}" method="GET" class="mt-3 mt-md-0 d-flex gap-2">
+    <input type="text" name="search" class="form-control" placeholder="Cari barang/kode..." value="{{ request('search') }}" style="max-width: 200px;">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addInventoryModal"><i class="bi bi-plus-lg"></i> Tambah Barang</button>
+  </form>
 </div>
+
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+    {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if(session('error'))
+  <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if($errors->any())
+  <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+    <ul class="mb-0">
+      @foreach($errors->all() as $err)
+        <li>{{ $err }}</li>
+      @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
 
 <div class="panel shadow-sm">
   <div class="panel-body p-0">
@@ -27,49 +53,58 @@
             <th class="ps-4">Kode</th>
             <th>Nama Barang</th>
             <th>Kategori</th>
-            <th class="text-center">Stok Awal</th>
-            <th>Kondisi Tersedia</th>
+            <th class="text-center">Total Stok</th>
+            <th class="text-center">Tersedia</th>
+            <th>Lokasi</th>
+            <th>Kondisi</th>
             <th class="pe-4 text-end">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="ps-4 fw-semibold text-muted">INV-ELK-001</td>
-            <td>
-              <div class="d-flex align-items-center">
-                <div class="bg-light rounded p-2 me-2"><i class="bi bi-projector text-primary"></i></div>
-                <span>Proyektor Epson EB-X05</span>
-              </div>
-            </td>
-            <td>Elektronik</td>
-            <td class="text-center">10</td>
-            <td>
-              <span class="badge bg-success bg-opacity-10 text-success border border-success">Baik: 8</span>
-              <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">Perawatan: 2</span>
-            </td>
-            <td class="pe-4 text-end">
-              <button class="btn btn-sm btn-light"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
-            </td>
-          </tr>
-          <tr>
-            <td class="ps-4 fw-semibold text-muted">INV-FOT-002</td>
-            <td>
-              <div class="d-flex align-items-center">
-                <div class="bg-light rounded p-2 me-2"><i class="bi bi-camera text-primary"></i></div>
-                <span>Kamera DSLR Canon EOS</span>
-              </div>
-            </td>
-            <td>Fotografi</td>
-            <td class="text-center">5</td>
-            <td>
-              <span class="badge bg-success bg-opacity-10 text-success border border-success">Baik: 5</span>
-            </td>
-            <td class="pe-4 text-end">
-              <button class="btn btn-sm btn-light"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
-            </td>
-          </tr>
+          @forelse($inventories as $inv)
+            <tr>
+              <td class="ps-4 fw-semibold text-muted">{{ $inv->code }}</td>
+              <td>
+                <div class="d-flex align-items-center">
+                  @if($inv->image)
+                    <img src="{{ asset('storage/' . $inv->image) }}" alt="{{ $inv->name }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                  @else
+                    <div class="bg-light rounded p-2 me-2" style="width: 40px; height: 40px; display:flex; align-items:center; justify-content:center;">
+                      <i class="bi bi-box text-primary"></i>
+                    </div>
+                  @endif
+                  <span class="fw-semibold">{{ $inv->name }}</span>
+                </div>
+              </td>
+              <td>{{ $inv->category->name }}</td>
+              <td class="text-center">{{ $inv->total_stock }}</td>
+              <td class="text-center">
+                <span class="badge bg-success">{{ $inv->available_stock }}</span>
+              </td>
+              <td>{{ $inv->location }}</td>
+              <td>
+                @if($inv->condition === 'baik')
+                  <span class="badge bg-success bg-opacity-10 text-success border border-success">Baik</span>
+                @elseif($inv->condition === 'rusak_ringan')
+                  <span class="badge bg-warning bg-opacity-10 text-warning border border-warning text-dark">Rusak Ringan</span>
+                @elseif($inv->condition === 'rusak_berat')
+                  <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Rusak Berat</span>
+                @endif
+              </td>
+              <td class="pe-4 text-end">
+                <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#editInventoryModal-{{ $inv->id }}"><i class="bi bi-pencil"></i></button>
+                <form action="{{ route('admin.inventory.destroy', $inv->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus barang ini?')">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">Belum ada barang terdaftar.</td>
+            </tr>
+          @endforelse
         </tbody>
       </table>
     </div>
@@ -78,50 +113,139 @@
 
 <!-- Modal Tambah Inventaris -->
 <div class="modal fade" id="addInventoryModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Tambah Data Inventaris</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <form>
+      <form action="{{ route('admin.inventory.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="modal-body">
           <div class="row mb-3">
             <div class="col-md-6">
-              <label class="form-label">Nama Barang</label>
-              <input type="text" class="form-control" required>
+              <label for="add_name" class="form-label">Nama Barang</label>
+              <input type="text" name="name" id="add_name" class="form-control" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Kategori</label>
-              <select class="form-select" required>
+              <label for="add_category" class="form-label">Kategori</label>
+              <select name="category_id" id="add_category" class="form-select" required>
                 <option value="">Pilih Kategori...</option>
-                <option value="ELK">Elektronik</option>
-                <option value="FOT">Fotografi</option>
-                <option value="AUD">Audio</option>
+                @foreach($categories as $cat)
+                  <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                @endforeach
               </select>
             </div>
           </div>
           <div class="row mb-3">
             <div class="col-md-6">
-              <label class="form-label">Jumlah Stok Awal</label>
-              <input type="number" class="form-control" min="1" required>
+              <label for="add_code" class="form-label">Kode Inventaris (Unique)</label>
+              <input type="text" name="code" id="add_code" class="form-control" placeholder="Contoh: INV-ELK-001" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Foto Barang</label>
-              <input type="file" class="form-control" accept="image/*">
+              <label for="add_location" class="form-label">Lokasi Penyimpanan</label>
+              <input type="text" name="location" id="add_location" class="form-control" placeholder="Gedung D, Lab Komputer" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="add_stock" class="form-label">Jumlah Stok Awal</label>
+              <input type="number" name="total_stock" id="add_stock" class="form-control" min="1" required>
+            </div>
+            <div class="col-md-4">
+              <label for="add_condition" class="form-label">Kondisi Fisik</label>
+              <select name="condition" id="add_condition" class="form-select" required>
+                <option value="baik">Baik</option>
+                <option value="rusak_ringan">Rusak Ringan</option>
+                <option value="rusak_berat">Rusak Berat</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="add_image" class="form-label">Foto Barang</label>
+              <input type="file" name="image" id="add_image" class="form-control" accept="image/*">
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Deskripsi & Spesifikasi</label>
-            <textarea class="form-control" rows="3" placeholder="Tulis rincian spesifikasi barang..."></textarea>
+            <label for="add_desc" class="form-label">Deskripsi & Spesifikasi</label>
+            <textarea name="description" id="add_desc" class="form-control" rows="3" placeholder="Tulis rincian spesifikasi barang..."></textarea>
           </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Simpan Data</button>
-      </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Data</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
+
+@foreach($inventories as $inv)
+  <!-- Modal Edit Inventaris #{{ $inv->id }} -->
+  <div class="modal fade" id="editInventoryModal-{{ $inv->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Data Inventaris: {{ $inv->name }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form action="{{ route('admin.inventory.update', $inv->id) }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          @method('PUT')
+          <div class="modal-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="edit_name-{{ $inv->id }}" class="form-label">Nama Barang</label>
+                <input type="text" name="name" id="edit_name-{{ $inv->id }}" class="form-control" value="{{ $inv->name }}" required>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_category-{{ $inv->id }}" class="form-label">Kategori</label>
+                <select name="category_id" id="edit_category-{{ $inv->id }}" class="form-select" required>
+                  @foreach($categories as $cat)
+                    <option value="{{ $cat->id }}" {{ $inv->category_id == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                  @endforeach
+                </select>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="edit_code-{{ $inv->id }}" class="form-label">Kode Inventaris</label>
+                <input type="text" name="code" id="edit_code-{{ $inv->id }}" class="form-control" value="{{ $inv->code }}" required>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_location-{{ $inv->id }}" class="form-label">Lokasi Penyimpanan</label>
+                <input type="text" name="location" id="edit_location-{{ $inv->id }}" class="form-control" value="{{ $inv->location }}" required>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label for="edit_stock-{{ $inv->id }}" class="form-label">Total Stok</label>
+                <input type="number" name="total_stock" id="edit_stock-{{ $inv->id }}" class="form-control" value="{{ $inv->total_stock }}" min="0" required>
+              </div>
+              <div class="col-md-4">
+                <label for="edit_condition-{{ $inv->id }}" class="form-label">Kondisi Fisik</label>
+                <select name="condition" id="edit_condition-{{ $inv->id }}" class="form-select" required>
+                  <option value="baik" {{ $inv->condition === 'baik' ? 'selected' : '' }}>Baik</option>
+                  <option value="rusak_ringan" {{ $inv->condition === 'rusak_ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                  <option value="rusak_berat" {{ $inv->condition === 'rusak_berat' ? 'selected' : '' }}>Rusak Berat</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="edit_image-{{ $inv->id }}" class="form-label">Foto Barang (Ganti)</label>
+                <input type="file" name="image" id="edit_image-{{ $inv->id }}" class="form-control" accept="image/*">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="edit_desc-{{ $inv->id }}" class="form-label">Deskripsi & Spesifikasi</label>
+              <textarea name="description" id="edit_desc-{{ $inv->id }}" class="form-control" rows="3">{{ $inv->description }}</textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+@endforeach
 @endsection

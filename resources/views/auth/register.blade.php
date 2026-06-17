@@ -14,7 +14,7 @@
     </div>
 
     <div class="d-grid gap-2 mb-4">
-      <a href="{{ route('student.dashboard') }}" class="btn btn-outline-dark py-2 d-flex align-items-center justify-content-center">
+      <a href="{{ route('auth.google') }}" class="btn btn-outline-dark py-2 d-flex align-items-center justify-content-center">
         <i class="bi bi-google text-danger me-2"></i> Daftar dengan Google
       </a>
     </div>
@@ -25,25 +25,37 @@
       <hr class="flex-grow-1">
     </div>
 
-    <form action="{{ route('student.dashboard') }}" method="GET">
+    @if($errors->any())
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <ul class="mb-0">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    @endif
+
+    <form action="{{ route('register') }}" method="POST">
+      @csrf
       <div class="mb-3">
         <label for="name" class="form-label">Nama Lengkap</label>
-        <input type="text" class="form-control" id="name" placeholder="John Doe" required>
+        <input type="text" name="name" class="form-control" id="name" value="{{ old('name') }}" placeholder="John Doe" required>
       </div>
 
       <div class="mb-3">
         <label for="nim" class="form-label">NIM (Nomor Induk Mahasiswa)</label>
-        <input type="text" class="form-control" id="nim" placeholder="1234567890" required>
+        <input type="text" name="nim" class="form-control" id="nim" value="{{ old('nim') }}" placeholder="1234567890" required>
       </div>
 
       <div class="mb-3">
         <label for="email" class="form-label">Email Kampus</label>
-        <input type="email" class="form-control" id="email" placeholder="mahasiswa@kampus.ac.id" required>
+        <input type="email" name="email" class="form-control" id="email" value="{{ old('email') }}" placeholder="mahasiswa@kampus.ac.id" required>
       </div>
       
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" placeholder="Minimal 8 karakter" required>
+        <input type="password" name="password" class="form-control" id="password" placeholder="Minimal 8 karakter" required>
       </div>
 
       <div class="mb-4 form-check">

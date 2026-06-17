@@ -14,6 +14,13 @@
   </div>
 </div>
 
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
 <div class="panel shadow-sm">
   <div class="panel-body p-0">
     <div class="table-responsive">
@@ -29,42 +36,47 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="ps-4 fw-semibold text-primary">#REQ-1004</td>
-            <td>Proyektor Epson EB-X05</td>
-            <td>20 Jun 2026</td>
-            <td>21 Jun 2026</td>
-            <td><span class="badge bg-warning text-dark">Menunggu Persetujuan</span></td>
-            <td class="pe-4 text-end">
-              <div class="progress" style="height: 10px; width: 100px; display: inline-block;">
-                <div class="progress-bar bg-warning" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="ps-4 fw-semibold text-primary">#REQ-1003</td>
-            <td>Kamera DSLR Canon EOS</td>
-            <td>16 Jun 2026</td>
-            <td>18 Jun 2026</td>
-            <td><span class="badge bg-info text-dark">Disetujui (Ambil Barang)</span></td>
-            <td class="pe-4 text-end">
-              <div class="progress" style="height: 10px; width: 100px; display: inline-block;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="ps-4 fw-semibold text-primary">#REQ-0992</td>
-            <td>Tripod Kamera Takara</td>
-            <td>10 Jun 2026</td>
-            <td>15 Jun 2026</td>
-            <td><span class="badge bg-primary">Sedang Dipinjam</span></td>
-            <td class="pe-4 text-end">
-              <div class="progress" style="height: 10px; width: 100px; display: inline-block;">
-                <div class="progress-bar bg-primary" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-              </div>
-            </td>
-          </tr>
+          @forelse($requests as $req)
+            <tr>
+              <td class="ps-4 fw-semibold text-primary">#REQ-{{ str_pad($req->id, 4, '0', STR_PAD_LEFT) }}</td>
+              <td>
+                @foreach($req->items as $item)
+                  {{ $item->inventory->name }} ({{ $item->quantity }}x)<br>
+                @endforeach
+              </td>
+              <td>{{ \Carbon\Carbon::parse($req->borrow_date)->format('d M Y') }}</td>
+              <td>{{ \Carbon\Carbon::parse($req->return_date)->format('d M Y') }}</td>
+              <td>
+                @if($req->status === 'pending')
+                  <span class="badge bg-warning text-dark">Menunggu Persetujuan</span>
+                @elseif($req->status === 'approved')
+                  <span class="badge bg-info text-dark">Disetujui (Siap Diambil)</span>
+                @elseif($req->status === 'borrowed')
+                  <span class="badge bg-primary">Sedang Dipinjam</span>
+                @elseif($req->status === 'returned')
+                  <span class="badge bg-success">Dikembalikan</span>
+                @elseif($req->status === 'rejected')
+                  <span class="badge bg-danger">Ditolak</span>
+                @endif
+              </td>
+              <td class="pe-4 text-end">
+                @php
+                  $progress = 25;
+                  $color = 'warning';
+                  if ($req->status === 'approved') { $progress = 50; $color = 'info'; }
+                  elseif ($req->status === 'borrowed') { $progress = 75; $color = 'primary'; }
+                  elseif ($req->status === 'returned' || $req->status === 'rejected') { $progress = 100; $color = $req->status === 'returned' ? 'success' : 'danger'; }
+                @endphp
+                <div class="progress" style="height: 10px; width: 120px; display: inline-block;">
+                  <div class="progress-bar bg-{{ $color }}" role="progressbar" style="width: {{ $progress }}%" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">Tidak ada peminjaman aktif saat ini.</td>
+            </tr>
+          @endforelse
         </tbody>
       </table>
     </div>

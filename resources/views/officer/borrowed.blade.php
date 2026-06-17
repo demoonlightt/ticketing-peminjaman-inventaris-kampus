@@ -14,6 +14,19 @@
   </div>
 </div>
 
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+@if(session('error'))
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
 <div class="panel">
   <div class="panel-header">
     <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
@@ -35,20 +48,40 @@
                 <th class="ps-4">No. Tiket</th>
                 <th>Mahasiswa</th>
                 <th>Inventaris</th>
-                <th>Tgl Ambil</th>
-                <th class="pe-4 text-end">Aksi</th>
+                <th>Tgl Ambil (Rencana)</th>
+                <th class="pe-4 text-end">Aksi Penyerahan</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="ps-4 fw-semibold text-primary">#REQ-1003</td>
-                <td>Andi Wijaya</td>
-                <td>Tripod Kamera Takara</td>
-                <td>17 Jun 2026</td>
-                <td class="pe-4 text-end">
-                  <button class="btn btn-sm btn-primary"><i class="bi bi-box-arrow-up-right"></i> Serahkan Barang</button>
-                </td>
-              </tr>
+              @php
+                $approvedRequests = $requests->where('status', 'approved');
+              @endphp
+              @forelse($approvedRequests as $req)
+                <tr>
+                  <td class="ps-4 fw-semibold text-primary">#REQ-{{ str_pad($req->id, 4, '0', STR_PAD_LEFT) }}</td>
+                  <td>
+                    <h6 class="mb-0">{{ $req->student->name }}</h6>
+                    <small class="text-muted">NIM: {{ $req->student->mahasiswaProfile->nim }}</small>
+                  </td>
+                  <td>
+                    @foreach($req->items as $item)
+                      {{ $item->inventory->name }} ({{ $item->quantity }}x)<br>
+                    @endforeach
+                  </td>
+                  <td>{{ \Carbon\Carbon::parse($req->borrow_date)->format('d M Y') }}</td>
+                  <td class="pe-4 text-end">
+                    <form action="{{ route('officer.requests.handover', $req->id) }}" method="POST" class="d-inline-flex align-items-center gap-2">
+                      @csrf
+                      <input type="text" name="notes" placeholder="Catatan kondisi (opsional)" class="form-control form-control-sm" style="max-width: 200px;">
+                      <button type="submit" class="btn btn-sm btn-primary text-nowrap"><i class="bi bi-box-arrow-up-right"></i> Serahkan Barang</button>
+                    </form>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">Tidak ada pengajuan menunggu penyerahan barang.</td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>
@@ -62,24 +95,41 @@
                 <th>Mahasiswa</th>
                 <th>Inventaris</th>
                 <th>Batas Kembali</th>
-                <th>Status</th>
+                <th>Catatan Penyerahan</th>
+                <th class="pe-4">Status</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="ps-4 fw-semibold text-primary">#REQ-0992</td>
-                <td>Dewi Lestari</td>
-                <td>Microphone Wireless Shure</td>
-                <td>16 Jun 2026</td>
-                <td><span class="badge bg-danger">Terlambat</span></td>
-              </tr>
-              <tr>
-                <td class="ps-4 fw-semibold text-primary">#REQ-1000</td>
-                <td>Farhan Maulana</td>
-                <td>Kabel Roll 15M</td>
-                <td>19 Jun 2026</td>
-                <td><span class="badge bg-info text-dark">Active</span></td>
-              </tr>
+              @php
+                $borrowedRequests = $requests->where('status', 'borrowed');
+              @endphp
+              @forelse($borrowedRequests as $req)
+                <tr>
+                  <td class="ps-4 fw-semibold text-primary">#REQ-{{ str_pad($req->id, 4, '0', STR_PAD_LEFT) }}</td>
+                  <td>
+                    <h6 class="mb-0">{{ $req->student->name }}</h6>
+                    <small class="text-muted">NIM: {{ $req->student->mahasiswaProfile->nim }}</small>
+                  </td>
+                  <td>
+                    @foreach($req->items as $item)
+                      {{ $item->inventory->name }} ({{ $item->quantity }}x)<br>
+                    @endforeach
+                  </td>
+                  <td>{{ \Carbon\Carbon::parse($req->return_date)->format('d M Y') }}</td>
+                  <td>{{ $req->handover->notes ?? '-' }}</td>
+                  <td class="pe-4">
+                    @if(strtotime($req->return_date) < strtotime(date('Y-m-d')))
+                      <span class="badge bg-danger">Terlambat</span>
+                    @else
+                      <span class="badge bg-info text-dark">Aktif</span>
+                    @endif
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="6" class="text-center py-4 text-muted">Tidak ada barang yang sedang dipinjam saat ini.</td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>

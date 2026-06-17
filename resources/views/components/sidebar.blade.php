@@ -10,7 +10,7 @@
   </div>
 
   <nav class="sidebar-nav">
-    @if(request()->is('admin/*') || request()->is('admin'))
+    @if(Auth::check() && Auth::user()->isAdmin())
       <!-- ADMIN MENU -->
       <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
         <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
@@ -58,12 +58,12 @@
         <span class="nav-icon"><i class="bi bi-person" aria-hidden="true"></i></span>
         <span class="nav-text">Profil</span>
       </a>
-      <a class="nav-link" href="{{ route('login') }}">
+      <a class="nav-link" href="{{ route('logout') }}">
         <span class="nav-icon"><i class="bi bi-box-arrow-right text-danger" aria-hidden="true"></i></span>
         <span class="nav-text text-danger">Logout</span>
       </a>
 
-    @elseif(request()->is('officer/*') || request()->is('officer'))
+    @elseif(Auth::check() && Auth::user()->isOfficer())
       <!-- PETUGAS MENU -->
       <a class="nav-link {{ request()->routeIs('officer.dashboard') ? 'active' : '' }}" href="{{ route('officer.dashboard') }}">
         <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
@@ -101,7 +101,7 @@
         <span class="nav-icon"><i class="bi bi-person" aria-hidden="true"></i></span>
         <span class="nav-text">Profil</span>
       </a>
-      <a class="nav-link" href="{{ route('login') }}">
+      <a class="nav-link" href="{{ route('logout') }}">
         <span class="nav-icon"><i class="bi bi-box-arrow-right text-danger" aria-hidden="true"></i></span>
         <span class="nav-text text-danger">Logout</span>
       </a>
@@ -150,21 +150,24 @@
         <span class="nav-icon"><i class="bi bi-person" aria-hidden="true"></i></span>
         <span class="nav-text">Profil</span>
       </a>
-      <a class="nav-link" href="{{ route('login') }}">
+      <a class="nav-link" href="{{ route('logout') }}">
         <span class="nav-icon"><i class="bi bi-box-arrow-right text-danger" aria-hidden="true"></i></span>
         <span class="nav-text text-danger">Logout</span>
       </a>
     @endif
   </nav>
 
-  <div class="sidebar-user">
-    <img class="avatar-img avatar-md sidebar-user-avatar" src="{{ asset('assets/images/avatar/avatar.jpg') }}" alt="User">
-    <strong>
-      @if(request()->is('admin/*') || request()->is('admin')) Admin
-      @elseif(request()->is('officer/*') || request()->is('officer')) Petugas
-      @else Mahasiswa
-      @endif
-    </strong>
-    <small>Online</small>
+  <div class="sidebar-user d-flex align-items-center p-3">
+    @if(Auth::user()->avatar || Auth::user()->provider === 'google')
+      <img class="avatar-img avatar-md sidebar-user-avatar me-2" src="{{ Auth::user()->avatar }}" alt="User">
+    @else
+      <div class="avatar-img avatar-md sidebar-user-avatar me-2 d-flex align-items-center justify-content-center bg-primary text-white rounded-circle fw-bold" style="width: 40px; height: 40px; font-size: 18px;">
+        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+      </div>
+    @endif
+    <div class="text-start">
+      <strong class="d-block text-truncate" style="max-width: 140px;">{{ Auth::user()->name }}</strong>
+      <small class="text-muted text-capitalize">{{ Auth::user()->role }}</small>
+    </div>
   </div>
 </aside>

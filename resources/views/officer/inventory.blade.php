@@ -12,10 +12,10 @@
       <p class="text-muted mb-0">Pantau ketersediaan stok fisik barang dan status peminjaman.</p>
     </div>
   </div>
-  <div class="mt-3 mt-md-0 d-flex gap-2">
-    <input type="text" class="form-control" placeholder="Cari nama/kode barang..." style="max-width: 250px;">
-    <button class="btn btn-primary"><i class="bi bi-search"></i></button>
-  </div>
+  <form action="{{ route('officer.inventory') }}" method="GET" class="mt-3 mt-md-0 d-flex gap-2">
+    <input type="text" name="search" class="form-control" placeholder="Cari nama/kode barang..." value="{{ request('search') }}" style="max-width: 250px;">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+  </form>
 </div>
 
 <div class="panel shadow-sm">
@@ -30,56 +30,69 @@
             <th class="text-center">Total Stok</th>
             <th class="text-center">Dipinjam</th>
             <th class="text-center">Tersedia</th>
-            <th class="text-center">Rusak</th>
+            <th class="text-center">Kondisi</th>
             <th class="pe-4 text-end">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="ps-4 fw-semibold text-muted">INV-ELK-001</td>
-            <td>
-              <h6 class="mb-0">Proyektor Epson EB-X05</h6>
-            </td>
-            <td>Elektronik</td>
-            <td class="text-center">10</td>
-            <td class="text-center"><span class="badge bg-warning text-dark">8</span></td>
-            <td class="text-center"><span class="badge bg-success">2</span></td>
-            <td class="text-center"><span class="badge bg-danger">0</span></td>
-            <td class="pe-4 text-end">
-              <button class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i> Detail</button>
-            </td>
-          </tr>
-          <tr>
-            <td class="ps-4 fw-semibold text-muted">INV-FOT-002</td>
-            <td>
-              <h6 class="mb-0">Kamera DSLR Canon EOS</h6>
-            </td>
-            <td>Fotografi</td>
-            <td class="text-center">5</td>
-            <td class="text-center"><span class="badge bg-warning text-dark">5</span></td>
-            <td class="text-center"><span class="badge bg-danger">0</span></td>
-            <td class="text-center"><span class="badge bg-danger">0</span></td>
-            <td class="pe-4 text-end">
-              <button class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i> Detail</button>
-            </td>
-          </tr>
-          <tr>
-            <td class="ps-4 fw-semibold text-muted">INV-AUD-005</td>
-            <td>
-              <h6 class="mb-0">Microphone Wireless Shure</h6>
-            </td>
-            <td>Audio</td>
-            <td class="text-center">15</td>
-            <td class="text-center"><span class="badge bg-warning text-dark">2</span></td>
-            <td class="text-center"><span class="badge bg-success">11</span></td>
-            <td class="text-center"><span class="badge bg-danger">2</span></td>
-            <td class="pe-4 text-end">
-              <button class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i> Detail</button>
-            </td>
-          </tr>
+          @forelse($inventories as $inv)
+            <tr>
+              <td class="ps-4 fw-semibold text-muted">{{ $inv->code }}</td>
+              <td>
+                <h6 class="mb-0">{{ $inv->name }}</h6>
+              </td>
+              <td>{{ $inv->category->name }}</td>
+              <td class="text-center">{{ $inv->total_stock }}</td>
+              <td class="text-center">
+                <span class="badge bg-warning text-dark">{{ $inv->total_stock - $inv->available_stock }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-success">{{ $inv->available_stock }}</span>
+              </td>
+              <td class="text-center">
+                @if($inv->condition === 'baik')
+                  <span class="badge bg-success bg-opacity-10 text-success border border-success">Baik</span>
+                @elseif($inv->condition === 'rusak_ringan')
+                  <span class="badge bg-warning bg-opacity-10 text-warning border border-warning text-dark">Rusak Ringan</span>
+                @elseif($inv->condition === 'rusak_berat')
+                  <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Rusak Berat</span>
+                @endif
+              </td>
+              <td class="pe-4 text-end">
+                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#descModal-{{ $inv->id }}"><i class="bi bi-eye"></i> Detail</button>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">Tidak ada data inventaris ditemukan.</td>
+            </tr>
+          @endforelse
         </tbody>
       </table>
     </div>
   </div>
 </div>
+
+@foreach($inventories as $inv)
+  <!-- Detail Modal -->
+  <div class="modal fade" id="descModal-{{ $inv->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Detail Barang: {{ $inv->name }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Kode Barang:</strong> <code>{{ $inv->code }}</code></p>
+          <p><strong>Lokasi Penyimpanan:</strong> <span class="badge bg-secondary">{{ $inv->location }}</span></p>
+          <p><strong>Deskripsi:</strong></p>
+          <p class="text-muted mb-0">{{ $inv->description ?? 'Tidak ada deskripsi.' }}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+@endforeach
 @endsection

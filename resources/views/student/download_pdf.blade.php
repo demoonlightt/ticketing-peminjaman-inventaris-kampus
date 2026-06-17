@@ -24,17 +24,27 @@
         <h4 class="mb-2">Bukti Peminjaman Aktif</h4>
         <p class="text-muted mb-4">Cetak bukti untuk peminjaman yang sedang berlangsung (Approved/Borrowed).</p>
         
-        <form action="#" method="GET" class="text-start">
+        <form id="receiptForm" action="#" method="GET" class="text-start">
           <div class="mb-3">
             <label for="borrow_id" class="form-label">Pilih Tiket Peminjaman</label>
             <select class="form-select" id="borrow_id" required>
               <option value="" selected disabled>-- Pilih Tiket Aktif --</option>
-              <option value="1">#REQ-1003 - Kamera DSLR Canon EOS</option>
-              <option value="2">#REQ-1004 - Proyektor Epson EB-X05</option>
+              @forelse($activeRequests as $req)
+                <option value="{{ $req->id }}">
+                  #REQ-{{ str_pad($req->id, 4, '0', STR_PAD_LEFT) }} - 
+                  @foreach($req->items as $item)
+                    {{ $item->inventory->name }} ({{ $item->quantity }}x)
+                  @endforeach
+                </option>
+              @empty
+                <option value="" disabled>Tidak ada peminjaman aktif</option>
+              @endforelse
             </select>
           </div>
           <div class="d-grid">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-download me-2"></i>Export Bukti (PDF)</button>
+            <button type="submit" class="btn btn-primary" {{ $activeRequests->isEmpty() ? 'disabled' : '' }}>
+              <i class="bi bi-download me-2"></i>Export Bukti (PDF)
+            </button>
           </div>
         </form>
       </div>
@@ -50,15 +60,15 @@
         <h4 class="mb-2">Riwayat Peminjaman Pribadi</h4>
         <p class="text-muted mb-4">Cetak rekapitulasi seluruh riwayat peminjaman inventaris Anda.</p>
         
-        <form action="#" method="GET" class="text-start">
+        <form action="{{ route('student.history.export') }}" method="GET" target="_blank" class="text-start">
           <div class="row mb-3">
             <div class="col-6">
               <label for="start_date" class="form-label">Dari Tanggal</label>
-              <input type="date" class="form-control" id="start_date" required>
+              <input type="date" name="start_date" class="form-control" id="start_date" value="{{ date('Y-m-01') }}" required>
             </div>
             <div class="col-6">
               <label for="end_date" class="form-label">Sampai Tanggal</label>
-              <input type="date" class="form-control" id="end_date" required>
+              <input type="date" name="end_date" class="form-control" id="end_date" value="{{ date('Y-m-d') }}" required>
             </div>
           </div>
           <div class="d-grid mt-4 pt-1">
@@ -69,4 +79,19 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const receiptForm = document.getElementById('receiptForm');
+    if (receiptForm) {
+      receiptForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const borrowId = document.getElementById('borrow_id').value;
+        if (borrowId) {
+          window.open(`/student/receipt/${borrowId}/export`, '_blank');
+        }
+      });
+    }
+  });
+</script>
 @endsection

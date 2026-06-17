@@ -22,7 +22,7 @@
       </div>
       <div>
         <h6 class="text-muted mb-1" style="font-size: 0.85rem;">Total Pengajuan</h6>
-        <h3 class="mb-0">12</h3>
+        <h3 class="mb-0">{{ $totalRequestsCount }}</h3>
       </div>
     </div>
   </div>
@@ -33,7 +33,7 @@
       </div>
       <div>
         <h6 class="text-muted mb-1" style="font-size: 0.85rem;">Peminjaman Aktif</h6>
-        <h3 class="mb-0">2</h3>
+        <h3 class="mb-0">{{ $activeBorrowingsCount }}</h3>
       </div>
     </div>
   </div>
@@ -44,7 +44,7 @@
       </div>
       <div>
         <h6 class="text-muted mb-1" style="font-size: 0.85rem;">Menunggu Persetujuan</h6>
-        <h3 class="mb-0">1</h3>
+        <h3 class="mb-0">{{ $pendingRequestsCount }}</h3>
       </div>
     </div>
   </div>
@@ -55,7 +55,7 @@
       </div>
       <div>
         <h6 class="text-muted mb-1" style="font-size: 0.85rem;">Terlambat</h6>
-        <h3 class="mb-0">0</h3>
+        <h3 class="mb-0">{{ $lateRequestsCount }}</h3>
       </div>
     </div>
   </div>
@@ -65,8 +65,8 @@
   <div class="col-12">
     <div class="panel">
       <div class="panel-header d-flex justify-content-between align-items-center">
-        <h5 class="panel-title mb-0">Riwayat Pengajuan</h5>
-        <a href="{{ route('student.history') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+        <h5 class="panel-title mb-0">Riwayat Pengajuan Terbaru</h5>
+        <a href="{{ route('student.my_borrowings') }}" class="btn btn-sm btn-outline-primary">Lihat Peminjaman Saya</a>
       </div>
       <div class="panel-body p-0">
         <div class="table-responsive">
@@ -81,34 +81,35 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="ps-4 fw-semibold text-primary">#REQ-1004</td>
-                <td>Proyektor Epson EB-X05</td>
-                <td>20 Jun 2026</td>
-                <td>21 Jun 2026</td>
-                <td><span class="badge bg-warning text-dark">Pending</span></td>
-              </tr>
-              <tr>
-                <td class="ps-4 fw-semibold text-primary">#REQ-1003</td>
-                <td>Kamera DSLR Canon EOS</td>
-                <td>16 Jun 2026</td>
-                <td>18 Jun 2026</td>
-                <td><span class="badge bg-success">Borrowed</span></td>
-              </tr>
-              <tr>
-                <td class="ps-4 fw-semibold text-primary">#REQ-0992</td>
-                <td>Tripod Kamera Takara</td>
-                <td>10 Jun 2026</td>
-                <td>12 Jun 2026</td>
-                <td><span class="badge bg-secondary">Returned</span></td>
-              </tr>
-              <tr>
-                <td class="ps-4 fw-semibold text-primary">#REQ-0951</td>
-                <td>Microphone Wireless Shure</td>
-                <td>01 Jun 2026</td>
-                <td>02 Jun 2026</td>
-                <td><span class="badge bg-secondary">Returned</span></td>
-              </tr>
+              @forelse($activeBorrowings as $req)
+                <tr>
+                  <td class="ps-4 fw-semibold text-primary">#REQ-{{ str_pad($req->id, 4, '0', STR_PAD_LEFT) }}</td>
+                  <td>
+                    @foreach($req->items as $item)
+                      {{ $item->inventory->name }} ({{ $item->quantity }}x)<br>
+                    @endforeach
+                  </td>
+                  <td>{{ \Carbon\Carbon::parse($req->borrow_date)->format('d M Y') }}</td>
+                  <td>{{ \Carbon\Carbon::parse($req->return_date)->format('d M Y') }}</td>
+                  <td>
+                    @if($req->status === 'pending')
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    @elseif($req->status === 'approved')
+                      <span class="badge bg-info text-dark">Approved</span>
+                    @elseif($req->status === 'borrowed')
+                      <span class="badge bg-success">Borrowed</span>
+                    @elseif($req->status === 'returned')
+                      <span class="badge bg-secondary">Returned</span>
+                    @elseif($req->status === 'rejected')
+                      <span class="badge bg-danger">Rejected</span>
+                    @endif
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">Belum ada pengajuan peminjaman aktif.</td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>

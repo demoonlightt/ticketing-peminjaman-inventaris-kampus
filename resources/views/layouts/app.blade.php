@@ -31,6 +31,15 @@
   </div>
 
   <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
+  @auth
+    <script>
+      window.adminHMDUser = {
+        name: "{{ Auth::user()->name }}",
+        workspace: "{{ Auth::user()->role === 'admin' ? 'Administrator' : (Auth::user()->role === 'officer' ? 'Petugas' : 'Mahasiswa') }}",
+        avatar: "{{ (Auth::user()->avatar || Auth::user()->provider === 'google') ? Auth::user()->avatar : '' }}"
+      };
+    </script>
+  @endauth
   <script src="{{ asset('assets/js/main.js') }}"></script>
 </body>
 </html>

@@ -23,7 +23,7 @@
       </div>
       <div>
         <h6 class="text-muted mb-1" style="font-size: 0.85rem;">Total Inventaris</h6>
-        <h3 class="mb-0">1,245</h3>
+        <h3 class="mb-0">{{ number_format($totalInventory) }}</h3>
       </div>
     </div>
   </div>
@@ -33,8 +33,8 @@
         <i class="bi bi-people"></i>
       </div>
       <div>
-        <h6 class="text-muted mb-1" style="font-size: 0.85rem;">Total User</h6>
-        <h3 class="mb-0">3,450</h3>
+        <h6 class="text-muted mb-1" style="font-size: 0.85rem;">Total Mahasiswa</h6>
+        <h3 class="mb-0">{{ number_format($totalUser) }}</h3>
       </div>
     </div>
   </div>
@@ -45,7 +45,7 @@
       </div>
       <div>
         <h6 class="text-muted mb-1" style="font-size: 0.85rem;">Peminjaman Aktif</h6>
-        <h3 class="mb-0">112</h3>
+        <h3 class="mb-0">{{ number_format($activeBorrowings) }}</h3>
       </div>
     </div>
   </div>
@@ -56,7 +56,7 @@
       </div>
       <div>
         <h6 class="text-muted mb-1" style="font-size: 0.85rem;">Pengajuan Bulan Ini</h6>
-        <h3 class="mb-0">458</h3>
+        <h3 class="mb-0">{{ number_format($monthlyRequests) }}</h3>
       </div>
     </div>
   </div>
@@ -85,9 +85,9 @@
       <div class="panel-body d-flex flex-column justify-content-center align-items-center">
         <canvas id="conditionChart" style="max-height: 250px;"></canvas>
         <div class="mt-3 text-center w-100">
-          <span class="badge bg-success me-1">Baik: 180</span>
-          <span class="badge bg-warning text-dark me-1">Perlu Perawatan: 20</span>
-          <span class="badge bg-danger">Rusak: 8</span>
+          <span class="badge bg-success me-1">Baik: {{ $conditions['baik'] }}</span>
+          <span class="badge bg-warning text-dark me-1">Perlu Perawatan: {{ $conditions['rusak_ringan'] }}</span>
+          <span class="badge bg-danger">Rusak Berat: {{ $conditions['rusak_berat'] }}</span>
         </div>
       </div>
     </div>
@@ -118,10 +118,10 @@
     new Chart(trendCtx, {
       type: 'line',
       data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        labels: @json($trends['labels']),
         datasets: [{
           label: 'Total Peminjaman',
-          data: [120, 190, 300, 250, 420, 458],
+          data: @json($trends['data']),
           borderColor: '#0d6efd',
           backgroundColor: 'rgba(13, 110, 253, 0.1)',
           borderWidth: 2,
@@ -146,9 +146,13 @@
     new Chart(conditionCtx, {
       type: 'doughnut',
       data: {
-        labels: ['Baik', 'Perlu Perawatan', 'Rusak'],
+        labels: ['Baik', 'Perlu Perawatan', 'Rusak Berat'],
         datasets: [{
-          data: [180, 20, 8],
+          data: [
+            @json($conditions['baik']),
+            @json($conditions['rusak_ringan']),
+            @json($conditions['rusak_berat'])
+          ],
           backgroundColor: ['#198754', '#ffc107', '#dc3545'],
           hoverOffset: 4
         }]
@@ -170,10 +174,10 @@
     new Chart(utilCtx, {
       type: 'bar',
       data: {
-        labels: ['Proyektor', 'Laptop', 'Kamera', 'Speaker', 'Mikrofon'],
+        labels: @json($utilization['labels']),
         datasets: [{
           label: 'Utilisasi (%)',
-          data: [95, 82, 70, 45, 30],
+          data: @json($utilization['data']),
           backgroundColor: [
             'rgba(13, 110, 253, 0.8)', // Primary
             'rgba(25, 135, 84, 0.8)',  // Success
@@ -187,7 +191,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        indexAxis: 'y', // Membuat bar chart menjadi horizontal (opsional, tapi bagus untuk ranking)
+        indexAxis: 'y', // Membuat bar chart menjadi horizontal
         plugins: {
           legend: { display: false },
           tooltip: {

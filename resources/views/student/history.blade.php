@@ -30,56 +30,85 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="ps-4 fw-semibold text-muted">#REQ-0992</td>
-            <td>
-              <div class="d-flex align-items-center">
-                <div class="bg-light rounded p-2 me-3">
-                  <i class="bi bi-camera text-primary"></i>
-                </div>
-                <div>
-                  <h6 class="mb-0">Tripod Kamera Takara</h6>
-                  <small class="text-muted">Kategori: Fotografi</small>
-                </div>
-              </div>
-            </td>
-            <td>10 Jun 2026</td>
-            <td>12 Jun 2026</td>
-            <td><span class="badge bg-success bg-opacity-10 text-success border border-success">Baik</span></td>
-            <td class="text-center text-warning">
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-half"></i>
-            </td>
-            <td class="pe-4 text-end">
-              <button class="btn btn-sm btn-outline-secondary" disabled>Sudah Dinilai</button>
-            </td>
-          </tr>
-          <tr>
-            <td class="ps-4 fw-semibold text-muted">#REQ-0951</td>
-            <td>
-              <div class="d-flex align-items-center">
-                <div class="bg-light rounded p-2 me-3">
-                  <i class="bi bi-mic text-primary"></i>
-                </div>
-                <div>
-                  <h6 class="mb-0">Microphone Wireless Shure</h6>
-                  <small class="text-muted">Kategori: Audio</small>
-                </div>
-              </div>
-            </td>
-            <td>01 Jun 2026</td>
-            <td>02 Jun 2026</td>
-            <td><span class="badge bg-success bg-opacity-10 text-success border border-success">Baik</span></td>
-            <td class="text-center text-muted">
-              Belum dinilai
-            </td>
-            <td class="pe-4 text-end">
-              <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#ratingModal">Beri Rating</button>
-            </td>
-          </tr>
+          @forelse($requests as $req)
+            <tr>
+              <td class="ps-4 fw-semibold text-muted">#REQ-{{ str_pad($req->id, 4, '0', STR_PAD_LEFT) }}</td>
+              <td>
+                @if($req->items->count() > 0)
+                  @php $firstItem = $req->items->first()->inventory; @endphp
+                  <div class="d-flex align-items-center">
+                    <div class="bg-light rounded p-2 me-3">
+                      @php
+                        $icon = 'bi-box';
+                        if(str_contains(strtolower($firstItem->name), 'kamera')) $icon = 'bi-camera';
+                        elseif(str_contains(strtolower($firstItem->name), 'proyektor')) $icon = 'bi-projector';
+                        elseif(str_contains(strtolower($firstItem->name), 'laptop') || str_contains(strtolower($firstItem->name), 'macbook')) $icon = 'bi-laptop';
+                        elseif(str_contains(strtolower($firstItem->name), 'mikrofon') || str_contains(strtolower($firstItem->name), 'mic')) $icon = 'bi-mic';
+                        elseif(str_contains(strtolower($firstItem->name), 'speaker')) $icon = 'bi-volume-up';
+                        elseif(str_contains(strtolower($firstItem->name), 'printer')) $icon = 'bi-printer';
+                        elseif(str_contains(strtolower($firstItem->name), 'mikroskop')) $icon = 'bi-microscope';
+                      @endphp
+                      <i class="bi {{ $icon }} text-primary"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">
+                        @if($req->items->count() > 1)
+                          {{ $firstItem->name }} (dan {{ $req->items->count() - 1 }} barang lainnya)
+                        @else
+                          {{ $firstItem->name }} ({{ $req->items->first()->quantity }}x)
+                        @endif
+                      </h6>
+                      <small class="text-muted">Kategori: {{ $firstItem->category->name }}</small>
+                    </div>
+                  </div>
+                @else
+                  <span class="text-muted">-</span>
+                @endif
+              </td>
+              <td>{{ \Carbon\Carbon::parse($req->borrow_date)->format('d M Y') }}</td>
+              <td>{{ \Carbon\Carbon::parse($req->return_date)->format('d M Y') }}</td>
+              <td>
+                @if($req->status === 'rejected')
+                  <span class="badge bg-danger">Ditolak</span>
+                @elseif($req->returnRecord)
+                  @if($req->returnRecord->item_condition === 'baik')
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success">Baik</span>
+                  @elseif($req->returnRecord->item_condition === 'rusak_ringan')
+                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">Rusak Ringan</span>
+                  @elseif($req->returnRecord->item_condition === 'rusak_berat')
+                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Rusak Berat</span>
+                  @endif
+
+                  @if($req->returnRecord->fine)
+                    <div class="mt-1 small">
+                      <span class="text-danger fw-semibold">Denda: Rp {{ number_format($req->returnRecord->fine->amount, 0, ',', '.') }}</span>
+                      @if($req->returnRecord->fine->paid_status === 'paid')
+                        <span class="badge bg-success p-1 ms-1" style="font-size: 0.65rem;">Lunas</span>
+                      @else
+                        <span class="badge bg-danger p-1 ms-1" style="font-size: 0.65rem;">Belum Lunas</span>
+                      @endif
+                    </div>
+                  @endif
+                @else
+                  <span class="badge bg-secondary">Selesai</span>
+                @endif
+              </td>
+              <td class="text-center text-warning">
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+              </td>
+              <td class="pe-4 text-end">
+                <button class="btn btn-sm btn-outline-secondary" disabled>Sudah Dinilai</button>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">Belum ada riwayat peminjaman.</td>
+            </tr>
+          @endforelse
         </tbody>
       </table>
     </div>

@@ -30,28 +30,26 @@
 
       <div class="dropdown">
         <button class="profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-          <img class="avatar-img avatar-sm" src="{{ asset('assets/images/avatar/avatar.jpg') }}" alt="User">
-          <span class="profile-name d-none d-sm-inline">
-            @if(request()->is('admin/*') || request()->is('admin'))
-              Admin
-            @elseif(request()->is('officer/*') || request()->is('officer'))
-              Petugas
-            @else
-              Mahasiswa
-            @endif
-          </span>
+          @if(Auth::user()->avatar || Auth::user()->provider === 'google')
+            <img class="avatar-img avatar-sm" src="{{ Auth::user()->avatar }}" alt="User">
+          @else
+            <div class="avatar-img avatar-sm d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle fw-bold" style="width: 32px; height: 32px; font-size: 14px;">
+              {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+            </div>
+          @endif
+          <span class="profile-name d-none d-sm-inline">{{ Auth::user()->name }}</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           <li>
             <a class="dropdown-item" href="
-              @if(request()->is('admin/*') || request()->is('admin')) {{ route('admin.profile') }}
-              @elseif(request()->is('officer/*') || request()->is('officer')) {{ route('officer.profile') }}
+              @if(Auth::user()->isAdmin()) {{ route('admin.profile') }}
+              @elseif(Auth::user()->isOfficer()) {{ route('officer.profile') }}
               @else {{ route('student.profile') }}
               @endif
             ">Profil</a>
           </li>
           <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="#">Keluar</a></li>
+          <li><a class="dropdown-item" href="{{ route('logout') }}">Keluar</a></li>
         </ul>
       </div>
     </div>
