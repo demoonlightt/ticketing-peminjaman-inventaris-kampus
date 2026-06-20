@@ -315,6 +315,7 @@ class OfficerController extends Controller
             'employee_number' => 'required|string|max:30|unique:officer_profiles,employee_number,' . $profile->id,
             'division' => 'required|string|max:100',
             'password' => 'nullable|string|min:8|confirmed',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $user->name = $request->name;
@@ -322,6 +323,13 @@ class OfficerController extends Controller
 
         if ($request->password) {
             $user->password = Hash::make($request->password);
+        }
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && !\Illuminate\Support\Str::startsWith($user->avatar, 'http')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+            }
+            $user->avatar = $request->file('avatar')->store('avatars', 'public');
         }
 
         $user->save();

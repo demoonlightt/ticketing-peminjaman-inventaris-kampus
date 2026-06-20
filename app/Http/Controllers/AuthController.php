@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\MahasiswaProfile;
+use App\Models\OfficerProfile;
 
 class AuthController extends Controller
 {
@@ -189,5 +190,163 @@ class AuthController extends Controller
         return $status === Password::PASSWORD_RESET
                     ? redirect()->route('login')->with('success', __($status))
                     : back()->withErrors(['email' => __($status)]);
+    }
+
+    /**
+     * Developer quick role switcher (local environment only).
+     */
+    public function devSwitchRole($role)
+    {
+        if (config('app.env') !== 'local') {
+            abort(403, 'Fitur ini hanya dapat digunakan pada mode local development.');
+        }
+
+        if (!in_array($role, ['admin', 'officer', 'student'])) {
+            return back()->with('error', 'Role tidak valid.');
+        }
+
+        $user = User::where('role', $role)->first();
+
+        if (!$user) {
+            // Auto-create developer account if not exists
+            if ($role === 'admin') {
+                $user = User::create([
+                    'name' => 'Developer Admin',
+                    'email' => 'admin@sipinjam.com',
+                    'password' => Hash::make('password'),
+                    'role' => 'admin',
+                    'status' => 'active',
+                ]);
+            } elseif ($role === 'officer') {
+                $user = User::create([
+                    'name' => 'Developer Officer',
+                    'email' => 'officer@sipinjam.com',
+                    'password' => Hash::make('password'),
+                    'role' => 'officer',
+                    'status' => 'active',
+                ]);
+                OfficerProfile::create([
+                    'user_id' => $user->id,
+                    'employee_number' => 'NIP-DEV-999',
+                    'division' => 'Operasional Dev',
+                ]);
+            } elseif ($role === 'student') {
+                $user = User::create([
+                    'name' => 'Developer Student',
+                    'email' => 'student@sipinjam.com',
+                    'password' => Hash::make('password'),
+                    'role' => 'student',
+                    'status' => 'active',
+                ]);
+                MahasiswaProfile::create([
+                    'user_id' => $user->id,
+                    'nim' => 'NIM-DEV-999',
+                    'prodi' => 'Teknik Informatika',
+                    'fakultas' => 'Teknik',
+                    'angkatan' => date('Y'),
+                ]);
+            }
+        }
+
+        Auth::login($user);
+        return $this->redirectBasedOnRole($user)->with('success', 'Berhasil beralih ke hak akses: ' . strtoupper($role));
+    }
+
+    /**
+     * Diagnostic tool for testing file uploads.
+     */
+    public function devTestUpload(Request $request)
+    {
+        if (config('app.env') !== 'local') {
+            abort(403, 'Hanya untuk mode local development.');
+        }
+
+        $diagnostics = [];
+        $diagnostics['php_version'] = PHP_VERSION;
+        $diagnostics['sys_temp_dir'] = sys_get_temp_dir();
+        $diagnostics['upload_tmp_dir_setting'] = ini_get('upload_tmp_dir');
+        $diagnostics['upload_max_filesize'] = ini_get('upload_max_filesize');
+        $diagnostics['post_max_size'] = ini_get('post_max_size');
+        $diagnostics['memory_limit'] = ini_get('memory_limit');
+
+        // Check write permission in sys_temp_dir
+        $tempDir = sys_get_temp_dir();
+        $testFile = $tempDir . DIRECTORY_SEPARATOR . 'test_write_' . time() . '.tmp';
+        $written = @file_put_contents($testFile, 'test');
+        if ($written !== false) {
+            $diagnostics['sys_temp_dir_writable'] = true;
+            @unlink($testFile);
+        } else {
+            $diagnostics['sys_temp_dir_writable'] = false;
+            $diagnostics['sys_temp_dir_write_error'] = error_get_last()['message'] ?? 'Unknown error';
+        }
+
+        // Check storage/app/public write permission
+        $publicDiskRoot = storage_path('app/public');
+        $testStorageFile = $publicDiskRoot . DIRECTORY_SEPARATOR . 'test_write_' . time() . '.tmp';
+        $writtenStorage = @file_put_contents($testStorageFile, 'test');
+        if ($writtenStorage !== false) {
+            $diagnostics['storage_public_writable'] = true;
+            @unlink($testStorageFile);
+        } else {
+            $diagnostics['storage_public_writable'] = false;
+            $diagnostics['storage_public_write_error'] = error_get_last()['message'] ?? 'Unknown error';
+        }
+
+        $result = null;
+        if ($request->isMethod('post')) {
+            try {
+                $diagnostics['has_file_avatar'] = $request->hasFile('avatar');
+                $diagnostics['file_avatar_raw'] = $_FILES['avatar'] ?? null;
+
+                if ($request->hasFile('avatar')) {
+                    $file = $request->file('avatar');
+                    $diagnostics['uploaded_file_valid'] = $file->isValid();
+                    $diagnostics['uploaded_file_error_code'] = $file->getError();
+                    $diagnostics['uploaded_file_mime'] = $file->getMimeType();
+                    $diagnostics['uploaded_file_client_mime'] = $file->getClientMimeType();
+                    $diagnostics['uploaded_file_size'] = $file->getSize();
+
+                    // Try validation rules
+                    $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                        'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                    ]);
+
+                    if ($validator->fails()) {
+                        $diagnostics['validation_failed'] = true;
+                        $diagnostics['validation_errors'] = $validator->errors()->all();
+                    } else {
+                        $diagnostics['validation_failed'] = false;
+                        // Try saving
+                        $path = $file->store('avatars', 'public');
+                        $diagnostics['saved_path'] = $path;
+                        $diagnostics['saved_url'] = asset('storage/' . $path);
+                        $result = "Success! Saved to " . $path;
+                    }
+                } else {
+                    $result = "No file detected under key 'avatar'.";
+                }
+            } catch (\Exception $e) {
+                $diagnostics['exception'] = $e->getMessage();
+                $diagnostics['exception_trace'] = $e->getTraceAsString();
+                $result = "Failed with exception: " . $e->getMessage();
+            }
+        }
+
+        $html = '<!DOCTYPE html><html><head><title>Dev Upload Test</title>';
+        $html .= '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">';
+        $html .= '</head><body class="bg-light p-5"><div class="container bg-white p-4 rounded shadow">';
+        $html .= '<h2>Diagnostic File Upload Tool</h2>';
+        if ($result) {
+            $html .= '<div class="alert alert-info">Result: ' . htmlspecialchars($result) . '</div>';
+        }
+        $html .= '<form method="POST" enctype="multipart/form-data" class="mb-4">';
+        $html .= csrf_field();
+        $html .= '<div class="mb-3"><label class="form-label">Select file to test upload</label><input type="file" name="avatar" class="form-control"></div>';
+        $html .= '<button type="submit" class="btn btn-primary">Upload and Test</button></form>';
+        $html .= '<h4>Diagnostics Data:</h4><pre class="bg-dark text-light p-3 rounded">' . json_encode($diagnostics, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</pre>';
+        $html .= '</div></body></html>';
+
+        return response($html);
     }
 }

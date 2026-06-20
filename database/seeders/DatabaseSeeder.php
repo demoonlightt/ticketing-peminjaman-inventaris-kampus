@@ -212,6 +212,165 @@ class DatabaseSeeder extends Seeder
             'condition' => 'baik',
         ]);
 
+        // Additional Electronics
+        Inventory::create([
+            'category_id' => $catElectronics->id,
+            'code' => 'INV-ELK-006',
+            'name' => 'Tablet iPad Air 5 (M1)',
+            'description' => 'Tablet Apple iPad Air Gen 5, Chip M1, RAM 8GB, storage 256GB.',
+            'total_stock' => 6,
+            'available_stock' => 6,
+            'location' => 'Gedung C Lantai 2',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catElectronics->id,
+            'code' => 'INV-ELK-007',
+            'name' => 'Kamera Mirrorless Sony A7 Mark III',
+            'description' => 'Kamera mirrorless full-frame profesional 24.2 MP, Lensa 28-70mm.',
+            'total_stock' => 4,
+            'available_stock' => 4,
+            'location' => 'Gedung C Lantai 2',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catElectronics->id,
+            'code' => 'INV-ELK-008',
+            'name' => 'Gimbal Stabilizer DJI Ronin-SC',
+            'description' => 'Stabilizer 3-axis untuk kamera mirrorless/DSLR.',
+            'total_stock' => 3,
+            'available_stock' => 3,
+            'location' => 'Gedung C Lantai 2',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catElectronics->id,
+            'code' => 'INV-ELK-009',
+            'name' => 'Tripod Manfrotto Professional',
+            'description' => 'Tripod kamera kokoh berbahan aluminum dengan fluid video head.',
+            'total_stock' => 5,
+            'available_stock' => 5,
+            'location' => 'Gedung C Lantai 2',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catElectronics->id,
+            'code' => 'INV-ELK-010',
+            'name' => 'Presenter Remote Logitech Spotlight',
+            'description' => 'Pointer presentasi nirkabel canggih dengan teknologi advanced pointer.',
+            'total_stock' => 15,
+            'available_stock' => 15,
+            'location' => 'Gedung C Lantai 2',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        // Additional Office Equipment
+        Inventory::create([
+            'category_id' => $catOffice->id,
+            'code' => 'INV-OFF-002',
+            'name' => 'Papan Tulis Whiteboard Portable',
+            'description' => 'Papan tulis whiteboard dua sisi dengan roda (120 x 90 cm).',
+            'total_stock' => 3,
+            'available_stock' => 3,
+            'location' => 'Gedung A Lantai 1',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catOffice->id,
+            'code' => 'INV-OFF-003',
+            'name' => 'Paper Shredder Kozure KS-7500',
+            'description' => 'Mesin penghancur kertas kapasitas 15 lembar, cross cut.',
+            'total_stock' => 2,
+            'available_stock' => 2,
+            'location' => 'Gedung A Lantai 1',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catOffice->id,
+            'code' => 'INV-OFF-004',
+            'name' => 'Mesin Laminating A3 Secure',
+            'description' => 'Mesin laminasi ukuran hingga A3 untuk dokumen tebal.',
+            'total_stock' => 2,
+            'available_stock' => 2,
+            'location' => 'Gedung A Lantai 1',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catOffice->id,
+            'code' => 'INV-OFF-005',
+            'name' => 'Scanner Canon Canoscan LiDE 300',
+            'description' => 'Scanner flatbed ringkas untuk scan dokumen cepat resolusi tinggi.',
+            'total_stock' => 5,
+            'available_stock' => 5,
+            'location' => 'Gedung A Lantai 1',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        // Additional Laboratory Equipment
+        Inventory::create([
+            'category_id' => $catLab->id,
+            'code' => 'INV-LAB-002',
+            'name' => 'Oscilloscope Digital Rigol DS1202Z-E',
+            'description' => 'Oskiloskop digital 2 channel bandwidth 200MHz, real-time sample rate 1GSa/s.',
+            'total_stock' => 4,
+            'available_stock' => 4,
+            'location' => 'Gedung D Lantai 3',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catLab->id,
+            'code' => 'INV-LAB-003',
+            'name' => 'Multimeter Digital Sanwa CD800a',
+            'description' => 'Multimeter digital presisi tinggi untuk ukur tegangan, hambatan, arus.',
+            'total_stock' => 12,
+            'available_stock' => 12,
+            'location' => 'Gedung D Lantai 3',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catLab->id,
+            'code' => 'INV-LAB-004',
+            'name' => 'Solder Station Digital Atten AT937',
+            'description' => 'Solder listrik dengan pengatur suhu digital presisi tinggi.',
+            'total_stock' => 10,
+            'available_stock' => 10,
+            'location' => 'Gedung D Lantai 3',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
+        Inventory::create([
+            'category_id' => $catLab->id,
+            'code' => 'INV-LAB-005',
+            'name' => 'Termometer Inframerah Laser Fluke 59',
+            'description' => 'Termometer laser tanpa sentuh untuk mengukur suhu komponen.',
+            'total_stock' => 8,
+            'available_stock' => 8,
+            'location' => 'Gedung D Lantai 3',
+            'image' => null,
+            'condition' => 'baik',
+        ]);
+
         // Create Borrow Requests
 
         // 1. Pending Request (Budi Santoso)

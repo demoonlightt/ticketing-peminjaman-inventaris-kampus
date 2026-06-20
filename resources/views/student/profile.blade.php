@@ -18,7 +18,13 @@
   <div class="col-xl-4 col-lg-5 mb-4 mb-lg-0">
     <div class="panel shadow-sm text-center p-4">
       <div class="position-relative d-inline-block mb-3">
-        <img src="{{ asset('assets/images/avatar/avatar.jpg') }}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 120px; height: 120px; object-fit: cover;">
+        @if($user->avatar)
+          <img src="{{ $user->getAvatarUrl() }}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 120px; height: 120px; object-fit: cover;">
+        @else
+          <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto text-white fw-bold shadow-sm" style="width: 120px; height: 120px; font-size: 2.5rem; background: linear-gradient(135deg, var(--bs-primary), #6f42c1);">
+            {{ $user->getInitials() }}
+          </div>
+        @endif
       </div>
       <h5 class="mb-1">{{ $user->name }}</h5>
       <p class="text-muted mb-3">{{ $user->email }}</p>
@@ -67,8 +73,13 @@
         <h5 class="panel-title mb-0">Informasi Dasar & Keamanan</h5>
       </div>
       <div class="panel-body">
-        <form action="{{ route('student.profile.update') }}" method="POST">
+        <form action="{{ route('student.profile.update') }}" method="POST" enctype="multipart/form-data">
           @csrf
+          <div class="mb-3">
+            <label for="avatar" class="form-label">Unggah Foto Profil Baru</label>
+            <input type="file" name="avatar" id="avatar" class="form-control" accept="image/*">
+            <small class="text-muted">Format: JPG, PNG, GIF (Maks. 2MB). Kosongkan jika tidak ingin diubah.</small>
+          </div>
           <div class="row mb-3">
             <div class="col-md-6">
               <label for="name" class="form-label">Nama Lengkap</label>

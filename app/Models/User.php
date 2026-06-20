@@ -46,6 +46,37 @@ class User extends Authenticatable
         return $this->role === 'student';
     }
 
+    /**
+     * Get the URL for the user's avatar.
+     */
+    public function getAvatarUrl(): ?string
+    {
+        if ($this->avatar) {
+            return \Illuminate\Support\Str::startsWith($this->avatar, 'http')
+                ? $this->avatar
+                : asset('storage/' . $this->avatar);
+        }
+        return null;
+    }
+
+    /**
+     * Get name initials (max 2 characters).
+     */
+    public function getInitials(): string
+    {
+        $words = explode(' ', $this->name);
+        $initials = '';
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $initials .= strtoupper(substr($word, 0, 1));
+            }
+            if (strlen($initials) >= 2) {
+                break;
+            }
+        }
+        return $initials ?: 'U';
+    }
+
     // Relationships
     public function mahasiswaProfile()
     {

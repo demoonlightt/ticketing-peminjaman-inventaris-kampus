@@ -24,6 +24,10 @@ Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
+// Dev Quick Role Switcher (local only)
+Route::get('/dev/switch-role/{role}', [AuthController::class, 'devSwitchRole'])->name('dev.switch-role');
+Route::any('/dev/test-upload', [AuthController::class, 'devTestUpload'])->name('dev.test-upload');
+
 Route::get('/', [AuthController::class, 'showLogin']);
 
 // Admin Routes

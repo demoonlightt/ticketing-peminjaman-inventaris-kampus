@@ -271,6 +271,7 @@ class StudentController extends Controller
             'fakultas' => 'required|string|max:100',
             'angkatan' => 'required|numeric|digits:4',
             'password' => 'nullable|string|min:8|confirmed',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $user->name = $request->name;
@@ -278,6 +279,13 @@ class StudentController extends Controller
 
         if ($request->password) {
             $user->password = Hash::make($request->password);
+        }
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && !\Illuminate\Support\Str::startsWith($user->avatar, 'http')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+            }
+            $user->avatar = $request->file('avatar')->store('avatars', 'public');
         }
 
         $user->save();

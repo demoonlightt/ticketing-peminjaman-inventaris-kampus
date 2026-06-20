@@ -30,11 +30,11 @@
 
       <div class="dropdown">
         <button class="profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-          @if(Auth::user()->avatar || Auth::user()->provider === 'google')
-            <img class="avatar-img avatar-sm" src="{{ Auth::user()->avatar }}" alt="User">
+          @if(Auth::user()->avatar)
+            <img class="avatar-img avatar-sm rounded-circle" src="{{ Auth::user()->getAvatarUrl() }}" alt="User" style="width: 32px; height: 32px; object-fit: cover;">
           @else
-            <div class="avatar-img avatar-sm d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle fw-bold" style="width: 32px; height: 32px; font-size: 14px;">
-              {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+            <div class="avatar-img avatar-sm d-inline-flex align-items-center justify-content-center text-white rounded-circle fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 13px; background: linear-gradient(135deg, var(--bs-primary), #6f42c1);">
+              {{ Auth::user()->getInitials() }}
             </div>
           @endif
           <span class="profile-name d-none d-sm-inline">{{ Auth::user()->name }}</span>

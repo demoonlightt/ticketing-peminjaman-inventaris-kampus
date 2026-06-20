@@ -20,6 +20,9 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!Auth::check()) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
             return redirect()->route('login');
         }
 
@@ -29,6 +32,9 @@ class RoleMiddleware
             // Check status, if suspended, block access
             if ($user->status === 'suspended') {
                 Auth::logout();
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'Akun Anda sedang ditangguhkan (suspended).'], 403);
+                }
                 return redirect()->route('login')->withErrors([
                     'email' => 'Akun Anda sedang ditangguhkan (suspended).'
                 ]);
@@ -36,6 +42,25 @@ class RoleMiddleware
             return $next($request);
         }
 
-        abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Anda tidak memiliki akses ke halaman ini.'], 403);
+        }
+
+        // Redirect authenticated users to their respective dashboards instead of throwing a raw 403 page
+        $redirectRoute = match ($user->role) {
+            'admin' => 'admin.dashboard',
+            'officer' => 'officer.dashboard',
+            'student' => 'student.dashboard',
+            default => 'login',
+        };
+
+        if ($redirectRoute === 'login') {
+            Auth::logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Role tidak valid.'
+            ]);
+        }
+
+        return redirect()->route($redirectRoute)->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
     }
 }
